@@ -14,6 +14,7 @@ library(data.table)
 library(cowplot)
 library(coronavirus)
 library(gghighlight)
+library(zoo)
 
 saveplot <- function(filename, ...) {
   ggsave2(filename, ...)
@@ -193,7 +194,17 @@ saveplot("box-group3.pdf", height = 4, width = 6)
 iris %>%
   ggplot(aes(x=Sepal.Length, fill="")) +
   geom_histogram(binwidth = 0.1) +
-  labs(x= "", y="sepal length [cm]") +
+  labs(x= "sepal length [cm]", y="count") +
+  theme_half_open() +
+  xlim(0, NA) +
+  background_grid(major = "xy") +
+  theme(legend.position = "none")
+saveplot("histogram1.pdf", height = 2, width = 3)
+
+iris %>%
+  ggplot(aes(x=Sepal.Length, fill="")) +
+  geom_density() +
+  labs(x= "sepal length [cm]", y="") +
   theme_half_open() +
   xlim(0, NA) +
   background_grid(major = "xy") +
@@ -206,7 +217,7 @@ iris %>%
   mutate(a = 1) %>%
   ggplot(aes(x=Sepal.Length, fill=a)) +
   stat_ecdf(geom = "step") +
-  labs(x= "", y="length [cm]") +
+  labs(x= "length [cm]", y="fraction") +
   theme_half_open() +
   xlim(0, NA) +
   background_grid(major = "xy") +
@@ -295,6 +306,20 @@ coronavirus %>%
   background_grid(major = "y") +
   theme(legend.position = "none")
 saveplot("stacked-bar1.pdf", height = 3, width = 4.5)
+
+coronavirus %>%
+  filter(type == "confirmed") %>%
+  filter(cases > 0) %>%
+  filter(month(date) == 12) %>%
+  ggplot(aes(x=date, y=cases, fill=country)) +
+  geom_col() +
+  gghighlight(max(cases) > 50000) +
+  theme_half_open() +
+  scale_y_continuous(labels = function(x) floor(x/100000)) +
+  ylab(bquote("\u00D7"*10^5~"number of cases")) +
+  background_grid(major = "y") +
+  theme(legend.position = "bottom")
+saveplot("stacked-bar1-a.pdf", height = 4, width = 6)
 ```
 
 
@@ -413,6 +438,22 @@ coronavirus %>%
   ylab(bquote("\u00D7"*10^5~"number of cases")) +  background_grid(major = "y") +
   theme(legend.position = "bottom")
 saveplot("line1.pdf", height = 3, width = 4.5)
+
+coronavirus %>%
+  filter(type == "confirmed") %>%
+  filter(cases > 0) %>%
+  mutate(place = ifelse(country == "US", "US", "other")) %>%
+  group_by(date, place) %>%
+  summarise(cases = sum(cases)) %>%
+  group_by(place) %>%
+  mutate(ccases = cumsum(cases)) %>%
+  ggplot(aes(x=date, y=ccases, color=place)) +
+  geom_line()+
+  theme_half_open() +
+  scale_y_continuous(labels = function(x) floor(x/10000000)) +
+  ylab(bquote("\u00D7"*10^7~"cumulative number of cases")) +  background_grid(major = "y") +
+  theme(legend.position = "bottom")
+saveplot("line1-cumulative.pdf", height = 4, width = 6)
 ```
 
 
@@ -473,8 +514,3 @@ coronavirus %>%
   background_grid(major = "y")
 saveplot("line4.pdf", height = 3, width = 4.5)
 ```
-```{r}
-coronavirus %>%
-  filter(country == "US")
-```
-
