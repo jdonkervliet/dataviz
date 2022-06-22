@@ -6,6 +6,7 @@ Data Visualization Examples
 -   [Plot Types](#plot-types)
     -   [Bar chart](#bar-chart)
     -   [Box plot](#box-plot)
+-   [Area plot](#area-plot)
 
 If the repository does not contain the plot type you need, please
 consider submitting a pull request to add it.
@@ -145,3 +146,58 @@ the mean in a box plot. We find that a simple marker, distinctly
 different from the type of marker used for outliers, typically works
 well. In the example above we use a white dot with a black border to
 indicate the mean.
+
+# Area plot
+
+``` r
+coronavirus %>%
+  filter(type == "confirmed") %>%
+  filter(cases > 0) %>%
+  mutate(place = ifelse(country == "US", "US", "other")) %>%
+  group_by(date, place) %>%
+  summarise(cases = sum(cases)) %>%
+  ggplot(aes(x=date, y=cases, fill=place)) +
+  geom_area(color="black") +
+  theme_half_open() +
+  scale_y_continuous(labels = function(x) floor(x/100000)) +
+  ylab(bquote("\u00D7"*10^5~"number of cases")) +
+  background_grid(major = "y") +
+  theme(legend.position = "bottom")
+```
+
+    ## `summarise()` has grouped output by 'date'. You can override using the
+    ## `.groups` argument.
+
+![](README_files/figure-gfm/unnamed-chunk-1-1.svg)<!-- -->
+
+``` r
+saveplot("stacked-area1.pdf", height = 3, width = 4.5)
+```
+
+    ## [1] "stacked-area1.pdf"
+
+``` r
+coronavirus %>%
+  filter(type == "confirmed") %>%
+  filter(cases > 0) %>%
+  mutate(place = ifelse(country == "US", "US", "other")) %>%
+  group_by(date, place) %>%
+  summarise(cases = sum(cases)) %>%
+  ggplot(aes(x=date, y=cases, fill=place)) +
+  geom_area(position="fill", color="black") +
+  theme_half_open() +
+  ylab("fraction of cases") +
+  background_grid(major = "y") +
+  theme(legend.position = "bottom")
+```
+
+    ## `summarise()` has grouped output by 'date'. You can override using the
+    ## `.groups` argument.
+
+![](README_files/figure-gfm/unnamed-chunk-2-1.svg)<!-- -->
+
+``` r
+saveplot("stacked-area2.pdf", height = 3, width = 4.5)
+```
+
+    ## [1] "stacked-area2.pdf"
