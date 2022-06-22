@@ -97,6 +97,162 @@ We plot the sepal length for all flowers in our data. The vertical axis
 shows the different flower types, and the horizontal axis shows the
 average sepal length, as well as the 5th and 95th percentiles.
 
+### Stacked Bar Chart
+
+``` r
+coronavirus %>%
+  filter(type == "confirmed") %>%
+  filter(cases > 0) %>%
+  filter(month(date) == 12) %>%
+  ggplot(aes(x=date, y=cases, fill=country)) +
+  geom_col() +
+  theme_half_open() +
+  scale_y_continuous(labels = function(x) floor(x/100000)) +
+  ylab(bquote("\u00D7"*10^5~"number of cases")) +
+  background_grid(major = "y") +
+  theme(legend.position = "none")
+```
+
+![](README_files/figure-gfm/unnamed-chunk-1-1.svg)<!-- -->
+
+``` r
+saveplot("stacked-bar1.pdf", height = 3, width = 4.5)
+```
+
+    ## [1] "stacked-bar1.pdf"
+
+``` r
+coronavirus %>%
+  filter(type == "confirmed") %>%
+  filter(cases > 0) %>%
+  filter(month(date) == 12) %>%
+  ggplot(aes(x=date, y=cases, fill=country)) +
+  geom_col() +
+  gghighlight(max(cases) > 50000) +
+  theme_half_open() +
+  scale_y_continuous(labels = function(x) floor(x/100000)) +
+  ylab(bquote("\u00D7"*10^5~"number of cases")) +
+  background_grid(major = "y") +
+  theme(legend.position = "bottom")
+```
+
+![](README_files/figure-gfm/unnamed-chunk-1-2.svg)<!-- -->
+
+``` r
+saveplot("stacked-bar1-a.pdf", height = 4, width = 6)
+```
+
+    ## [1] "stacked-bar1-a.pdf"
+
+``` r
+coronavirus %>%
+  filter(type == "confirmed") %>%
+  filter(cases > 0) %>%
+  filter(month(date) == 12) %>%
+  mutate(place = ifelse(country == "US", "US", "other")) %>%
+  group_by(date, place) %>%
+  summarise(cases = sum(cases)) %>%
+  ggplot(aes(x=date, y=cases, fill=place)) +
+  geom_col() +
+  theme_half_open() +
+  scale_y_continuous(labels = function(x) floor(x/100000)) +
+  ylab(bquote("\u00D7"*10^5~"number of cases")) +
+  background_grid(major = "y") +
+  theme(legend.position = "bottom")
+```
+
+    ## `summarise()` has grouped output by 'date'. You can override using the
+    ## `.groups` argument.
+
+![](README_files/figure-gfm/unnamed-chunk-2-1.svg)<!-- -->
+
+``` r
+saveplot("stacked-bar2.pdf", height = 3, width = 4.5)
+```
+
+    ## [1] "stacked-bar2.pdf"
+
+``` r
+coronavirus %>%
+  filter(type == "confirmed") %>%
+  filter(cases > 0) %>%
+  filter(month(date) == 12) %>%
+  mutate(place = ifelse(country == "US", "US", "other")) %>%
+  group_by(date, place) %>%
+  summarise(cases = sum(cases)) %>%
+  ggplot(aes(x=date, y=cases, fill=place)) +
+  geom_col(position="fill") +
+  theme_half_open() +
+  ylab("fraction of cases") +
+  background_grid(major = "y") +
+  theme(legend.position = "bottom")
+```
+
+    ## `summarise()` has grouped output by 'date'. You can override using the
+    ## `.groups` argument.
+
+![](README_files/figure-gfm/unnamed-chunk-3-1.svg)<!-- -->
+
+``` r
+saveplot("stacked-bar3.pdf", height = 3, width = 4.5)
+```
+
+    ## [1] "stacked-bar3.pdf"
+
+``` r
+coronavirus %>%
+  filter(type == "confirmed") %>%
+  filter(cases > 0) %>%
+  mutate(place = ifelse(country == "US", "US", "other")) %>%
+  group_by(date, place) %>%
+  summarise(cases = sum(cases)) %>%
+  ggplot(aes(x=date, y=cases, fill=place)) +
+  geom_col() +
+  theme_half_open() +
+  scale_y_continuous(labels = function(x) floor(x/100000)) +
+  ylab(bquote("\u00D7"*10^5~"number of cases")) +
+  background_grid(major = "y") +
+  theme(legend.position = "bottom")
+```
+
+    ## `summarise()` has grouped output by 'date'. You can override using the
+    ## `.groups` argument.
+
+![](README_files/figure-gfm/unnamed-chunk-4-1.svg)<!-- -->
+
+``` r
+saveplot("stacked-bar4.pdf", height = 3, width = 4.5)
+```
+
+    ## [1] "stacked-bar4.pdf"
+
+``` r
+coronavirus %>%
+  filter(type == "confirmed") %>%
+  filter(cases > 0) %>%
+  mutate(place = ifelse(country == "US", "US", "other")) %>%
+  group_by(date, place) %>%
+  summarise(cases = sum(cases)) %>%
+  ggplot(aes(x=date, y=cases, fill=place)) +
+  geom_col(position="fill") +
+  theme_half_open() +
+  scale_y_continuous(labels = function(x) floor(x/100000)) +
+  ylab(bquote("\u00D7"*10^5~"number of cases")) +
+  background_grid(major = "y") +
+  theme(legend.position = "bottom")
+```
+
+    ## `summarise()` has grouped output by 'date'. You can override using the
+    ## `.groups` argument.
+
+![](README_files/figure-gfm/unnamed-chunk-4-2.svg)<!-- -->
+
+``` r
+saveplot("stacked-bar5.pdf", height = 3, width = 4.5)
+```
+
+    ## [1] "stacked-bar5.pdf"
+
 ## Box plot
 
 ``` r
