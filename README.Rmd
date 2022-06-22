@@ -124,3 +124,52 @@ Although the box plot shows several useful statistical properties, it does not s
 Unfortunately, there is no standardized way of showing the mean in a box plot.
 We find that a simple marker, distinctly different from the type of marker used for outliers, typically works well.
 In the example above we use a white dot with a black border to indicate the mean.
+
+
+```{r}
+iris %>%
+  gather(key = "attribute", value = "measurement", -Species) %>%
+  ggplot(aes(y=measurement, x=Species, fill=attribute)) +
+  geom_boxplot() +
+  stat_summary(fun.y=mean, geom="point", aes(group=attribute), position=position_dodge(0.75), shape=21, size=1.5, color="black", fill="white") +
+  ylim(0,NA) +
+  labs(x= "", y="sepal length [cm]") +
+  scale_fill_discrete(labels=c("Sepal.Width" = "sepal width", "Sepal.Length" = "sepal length", "Petal.Width" = "petal width", "Petal.Length" = "petal length")) +
+  theme_half_open() +
+  background_grid(major = "x") +
+  theme(legend.position = "bottom") +
+  coord_flip()
+saveplot("box-group1.pdf", height = 4, width = 6)
+```
+```{r}
+iris %>%
+  gather(key = "attribute", value = "measurement", -Species) %>%
+  ggplot(aes(y=measurement, x=attribute, fill=Species)) +
+  geom_boxplot() +
+  stat_summary(fun.y=mean, geom="point", aes(group=Species), position=position_dodge(0.75), shape=21, size=1.5, color="black", fill="white") +
+  ylim(0,NA) +
+  labs(x="", y="sepal length [cm]") +
+  scale_x_discrete(labels=c("Sepal.Width" = "sepal width", "Sepal.Length" = "sepal length", "Petal.Width" = "petal width", "Petal.Length" = "petal length")) +
+  theme_half_open() +
+  background_grid(major = "x") +
+  theme(legend.position = "bottom") +
+  coord_flip()
+saveplot("box-group2.pdf", height = 4, width = 6)
+```
+
+```{r}
+iris %>%
+  gather(key = "attribute", value = "measurement", -Species) %>%
+  ggplot(aes(y=measurement, x=Species, fill=Species)) +
+  geom_boxplot() +
+  facet_wrap(~attribute, ncol=1, labeller = labeller(attribute = c("Sepal.Width" = "sepal width", "Sepal.Length" = "sepal length", "Petal.Width" = "petal width", "Petal.Length" = "petal length"))) +
+  stat_summary(fun.y=mean, geom="point", aes(group=Species), position=position_dodge(0.75), shape=21, size=2, color="black", fill="white") +
+  ylim(0,NA) +
+  labs(x= "", y="length [cm]") +
+  theme_half_open() +
+  background_grid(major = "x") +
+  theme(legend.position = "none") +
+  theme(strip.background=element_rect(fill='white', color="black")) +
+  coord_flip()
+saveplot("box-group3.pdf", height = 4, width = 6)
+```
