@@ -124,3 +124,96 @@ Although the box plot shows several useful statistical properties, it does not s
 Unfortunately, there is no standardized way of showing the mean in a box plot.
 We find that a simple marker, distinctly different from the type of marker used for outliers, typically works well.
 In the example above we use a white dot with a black border to indicate the mean.
+
+# Line plot
+
+```{r}
+coronavirus %>%
+  filter(type == "confirmed") %>%
+  filter(cases > 0) %>%
+  mutate(place = ifelse(country == "US", "US", "other")) %>%
+  group_by(date, place) %>%
+  summarise(cases = sum(cases)) %>%
+  ggplot(aes(x=date, y=cases, color=place)) +
+  geom_line()+
+  theme_half_open() +
+  scale_y_continuous(labels = function(x) floor(x/100000)) +
+  ylab(bquote("\u00D7"*10^5~"number of cases")) +  background_grid(major = "y") +
+  theme(legend.position = "bottom")
+saveplot("line1.pdf", height = 3, width = 4.5)
+
+coronavirus %>%
+  filter(type == "confirmed") %>%
+  filter(cases > 0) %>%
+  mutate(place = ifelse(country == "US", "US", "other")) %>%
+  group_by(date, place) %>%
+  summarise(cases = sum(cases)) %>%
+  group_by(place) %>%
+  mutate(ccases = cumsum(cases)) %>%
+  ggplot(aes(x=date, y=ccases, color=place)) +
+  geom_line()+
+  theme_half_open() +
+  scale_y_continuous(labels = function(x) floor(x/10000000)) +
+  ylab(bquote("\u00D7"*10^7~"cumulative number of cases")) +  background_grid(major = "y") +
+  theme(legend.position = "bottom")
+saveplot("line1-cumulative.pdf", height = 4, width = 6)
+```
+
+
+```{r}
+coronavirus %>%
+  filter(type == "confirmed") %>%
+  filter(cases > 0) %>%
+  mutate(place = ifelse(country == "US", "US", "other")) %>%
+  group_by(date, place) %>%
+  summarise(cases = sum(cases)) %>%
+  group_by(place) %>%
+  mutate(meancases = rollmean(cases, 7, fill=NA)) %>%
+  ggplot(aes(x=date, y=meancases, color=place)) +
+  geom_line()+
+  theme_half_open() +
+  scale_y_continuous(labels = function(x) floor(x/100000)) +
+  ylab(bquote("\u00D7"*10^5~"number of cases")) +
+  background_grid(major = "y") +
+  theme(legend.position = "bottom")
+saveplot("line2.pdf", height = 3, width = 4.5)
+```
+
+```{r}
+coronavirus %>%
+  filter(type == "confirmed") %>%
+  filter(cases > 0) %>%
+  group_by(country) %>%
+  mutate(meancases = rollmean(cases, 7, fill = NA)) %>%
+  filter(!is.na(meancases)) %>%
+  ggplot(aes(x=date, y=meancases, color=country)) +
+  geom_line() +
+  gghighlight(max(meancases) > 50000, label_params = list(segment.color="black")) +
+  theme_half_open() +
+  scale_y_continuous(labels = function(x) floor(x/10000)) +
+  ylab(bquote("\u00D7"*10^4~"number of cases")) +
+  background_grid(major = "y")
+saveplot("line3.pdf", height = 3, width = 4.5)
+```
+
+```{r}
+coronavirus %>%
+  filter(type == "confirmed") %>%
+  filter(cases > 0) %>%
+  mutate(place = ifelse(country == "US", "US", "other")) %>%
+  group_by(date, place) %>%
+  summarise(cases = sum(cases)) %>%
+  group_by(place) %>%
+  mutate(meancases = rollmean(cases, 7, fill=NA)) %>%
+  mutate(markers = ifelse(mday(date) == 1, meancases, NA)) %>%
+  filter(!is.na(meancases)) %>%
+  ggplot(aes(x=date, y=meancases, color=place)) +
+  geom_line()+
+  geom_point(aes(y=markers, shape=place), size=3) +
+  gghighlight(label_params = list(segment.color="black")) +
+  theme_half_open() +
+  scale_y_continuous(labels = function(x) floor(x/100000)) +
+  ylab(bquote("\u00D7"*10^5~"number of cases")) +
+  background_grid(major = "y")
+saveplot("line4.pdf", height = 3, width = 4.5)
+```

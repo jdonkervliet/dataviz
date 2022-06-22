@@ -6,6 +6,7 @@ Data Visualization Examples
 -   [Plot Types](#plot-types)
     -   [Bar chart](#bar-chart)
     -   [Box plot](#box-plot)
+-   [Line plot](#line-plot)
 
 If the repository does not contain the plot type you need, please
 consider submitting a pull request to add it.
@@ -145,3 +146,163 @@ the mean in a box plot. We find that a simple marker, distinctly
 different from the type of marker used for outliers, typically works
 well. In the example above we use a white dot with a black border to
 indicate the mean.
+
+# Line plot
+
+``` r
+coronavirus %>%
+  filter(type == "confirmed") %>%
+  filter(cases > 0) %>%
+  mutate(place = ifelse(country == "US", "US", "other")) %>%
+  group_by(date, place) %>%
+  summarise(cases = sum(cases)) %>%
+  ggplot(aes(x=date, y=cases, color=place)) +
+  geom_line()+
+  theme_half_open() +
+  scale_y_continuous(labels = function(x) floor(x/100000)) +
+  ylab(bquote("\u00D7"*10^5~"number of cases")) +  background_grid(major = "y") +
+  theme(legend.position = "bottom")
+```
+
+    ## `summarise()` has grouped output by 'date'. You can override using the
+    ## `.groups` argument.
+
+![](README_files/figure-gfm/unnamed-chunk-1-1.svg)<!-- -->
+
+``` r
+saveplot("line1.pdf", height = 3, width = 4.5)
+```
+
+    ## [1] "line1.pdf"
+
+``` r
+coronavirus %>%
+  filter(type == "confirmed") %>%
+  filter(cases > 0) %>%
+  mutate(place = ifelse(country == "US", "US", "other")) %>%
+  group_by(date, place) %>%
+  summarise(cases = sum(cases)) %>%
+  group_by(place) %>%
+  mutate(ccases = cumsum(cases)) %>%
+  ggplot(aes(x=date, y=ccases, color=place)) +
+  geom_line()+
+  theme_half_open() +
+  scale_y_continuous(labels = function(x) floor(x/10000000)) +
+  ylab(bquote("\u00D7"*10^7~"cumulative number of cases")) +  background_grid(major = "y") +
+  theme(legend.position = "bottom")
+```
+
+    ## `summarise()` has grouped output by 'date'. You can override using the
+    ## `.groups` argument.
+
+![](README_files/figure-gfm/unnamed-chunk-1-2.svg)<!-- -->
+
+``` r
+saveplot("line1-cumulative.pdf", height = 4, width = 6)
+```
+
+    ## [1] "line1-cumulative.pdf"
+
+``` r
+coronavirus %>%
+  filter(type == "confirmed") %>%
+  filter(cases > 0) %>%
+  mutate(place = ifelse(country == "US", "US", "other")) %>%
+  group_by(date, place) %>%
+  summarise(cases = sum(cases)) %>%
+  group_by(place) %>%
+  mutate(meancases = rollmean(cases, 7, fill=NA)) %>%
+  ggplot(aes(x=date, y=meancases, color=place)) +
+  geom_line()+
+  theme_half_open() +
+  scale_y_continuous(labels = function(x) floor(x/100000)) +
+  ylab(bquote("\u00D7"*10^5~"number of cases")) +
+  background_grid(major = "y") +
+  theme(legend.position = "bottom")
+```
+
+    ## `summarise()` has grouped output by 'date'. You can override using the
+    ## `.groups` argument.
+
+    ## Warning: Removed 12 row(s) containing missing values (geom_path).
+
+![](README_files/figure-gfm/unnamed-chunk-2-1.svg)<!-- -->
+
+``` r
+saveplot("line2.pdf", height = 3, width = 4.5)
+```
+
+    ## Warning: Removed 12 row(s) containing missing values (geom_path).
+
+    ## [1] "line2.pdf"
+
+``` r
+coronavirus %>%
+  filter(type == "confirmed") %>%
+  filter(cases > 0) %>%
+  group_by(country) %>%
+  mutate(meancases = rollmean(cases, 7, fill = NA)) %>%
+  filter(!is.na(meancases)) %>%
+  ggplot(aes(x=date, y=meancases, color=country)) +
+  geom_line() +
+  gghighlight(max(meancases) > 50000, label_params = list(segment.color="black")) +
+  theme_half_open() +
+  scale_y_continuous(labels = function(x) floor(x/10000)) +
+  ylab(bquote("\u00D7"*10^4~"number of cases")) +
+  background_grid(major = "y")
+```
+
+    ## label_key: country
+
+    ## Warning: ggrepel: 4 unlabeled data points (too many overlaps). Consider
+    ## increasing max.overlaps
+
+![](README_files/figure-gfm/unnamed-chunk-3-1.svg)<!-- -->
+
+``` r
+saveplot("line3.pdf", height = 3, width = 4.5)
+```
+
+    ## Warning: ggrepel: 7 unlabeled data points (too many overlaps). Consider
+    ## increasing max.overlaps
+
+    ## [1] "line3.pdf"
+
+``` r
+coronavirus %>%
+  filter(type == "confirmed") %>%
+  filter(cases > 0) %>%
+  mutate(place = ifelse(country == "US", "US", "other")) %>%
+  group_by(date, place) %>%
+  summarise(cases = sum(cases)) %>%
+  group_by(place) %>%
+  mutate(meancases = rollmean(cases, 7, fill=NA)) %>%
+  mutate(markers = ifelse(mday(date) == 1, meancases, NA)) %>%
+  filter(!is.na(meancases)) %>%
+  ggplot(aes(x=date, y=meancases, color=place)) +
+  geom_line()+
+  geom_point(aes(y=markers, shape=place), size=3) +
+  gghighlight(label_params = list(segment.color="black")) +
+  theme_half_open() +
+  scale_y_continuous(labels = function(x) floor(x/100000)) +
+  ylab(bquote("\u00D7"*10^5~"number of cases")) +
+  background_grid(major = "y")
+```
+
+    ## `summarise()` has grouped output by 'date'. You can override using the
+    ## `.groups` argument.
+    ## label_key: place
+
+    ## Warning: Removed 1182 rows containing missing values (geom_point).
+    ## Removed 1182 rows containing missing values (geom_point).
+
+![](README_files/figure-gfm/unnamed-chunk-4-1.svg)<!-- -->
+
+``` r
+saveplot("line4.pdf", height = 3, width = 4.5)
+```
+
+    ## Warning: Removed 1182 rows containing missing values (geom_point).
+    ## Removed 1182 rows containing missing values (geom_point).
+
+    ## [1] "line4.pdf"
