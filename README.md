@@ -6,6 +6,7 @@ Data Visualization Examples
 -   [Plot Types](#plot-types)
     -   [Bar chart](#bar-chart)
     -   [Box plot](#box-plot)
+-   [Scatter plot](#scatter-plot)
 
 If the repository does not contain the plot type you need, please
 consider submitting a pull request to add it.
@@ -145,3 +146,70 @@ the mean in a box plot. We find that a simple marker, distinctly
 different from the type of marker used for outliers, typically works
 well. In the example above we use a white dot with a black border to
 indicate the mean.
+
+# Scatter plot
+
+``` r
+iris %>%
+  ggplot(aes(y=Sepal.Width, x=Sepal.Length)) +
+  geom_point() +
+  ylim(0, NA) +
+  xlim(0, NA) +
+  labs(y="sepal width [cm]", x="sepal length [cm]") +
+  theme_half_open() +
+  background_grid(major = "xy") +
+  theme(legend.position = "none") +
+  coord_flip()
+```
+
+![](README_files/figure-gfm/unnamed-chunk-1-1.svg)<!-- -->
+
+``` r
+saveplot("scatter1.pdf", height = 4, width = 6)
+```
+
+    ## [1] "scatter1.pdf"
+
+``` r
+iris %>%
+  group_by(Species) %>%
+  ggplot(aes(y=Sepal.Width, x=Sepal.Length, color=Species)) +
+  geom_point() +
+  ylim(0, NA) +
+  xlim(0, NA) +
+  labs(y="sepal width [cm]", x="sepal length [cm]") +
+  theme_half_open() +
+  background_grid(major = "xy") +
+  theme(legend.position = "bottom") +
+  coord_flip()
+```
+
+![](README_files/figure-gfm/unnamed-chunk-2-1.svg)<!-- -->
+
+``` r
+saveplot("scatter2.pdf", height = 4, width = 6)
+```
+
+    ## [1] "scatter2.pdf"
+
+``` r
+iris %>%
+  group_by(Species) %>%
+  ggplot(aes(y=Sepal.Width, x=Sepal.Length, color=Species, shape=Species)) +
+  geom_point(size = 3) +
+  ylim(0, NA) +
+  xlim(0, NA) +
+  labs(y="sepal width [cm]", x="sepal length [cm]") +
+  theme_half_open() +
+  background_grid(major = "xy") +
+  theme(legend.position = "bottom") +
+  coord_flip()
+```
+
+![](README_files/figure-gfm/unnamed-chunk-3-1.svg)<!-- -->
+
+``` r
+saveplot("scatter3.pdf", height = 4, width = 6)
+```
+
+    ## [1] "scatter3.pdf"

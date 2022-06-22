@@ -124,3 +124,50 @@ Although the box plot shows several useful statistical properties, it does not s
 Unfortunately, there is no standardized way of showing the mean in a box plot.
 We find that a simple marker, distinctly different from the type of marker used for outliers, typically works well.
 In the example above we use a white dot with a black border to indicate the mean.
+
+# Scatter plot
+
+```{r}
+iris %>%
+  ggplot(aes(y=Sepal.Width, x=Sepal.Length)) +
+  geom_point() +
+  ylim(0, NA) +
+  xlim(0, NA) +
+  labs(y="sepal width [cm]", x="sepal length [cm]") +
+  theme_half_open() +
+  background_grid(major = "xy") +
+  theme(legend.position = "none") +
+  coord_flip()
+saveplot("scatter1.pdf", height = 4, width = 6)
+```
+
+
+
+```{r}
+iris %>%
+  group_by(Species) %>%
+  ggplot(aes(y=Sepal.Width, x=Sepal.Length, color=Species)) +
+  geom_point() +
+  ylim(0, NA) +
+  xlim(0, NA) +
+  labs(y="sepal width [cm]", x="sepal length [cm]") +
+  theme_half_open() +
+  background_grid(major = "xy") +
+  theme(legend.position = "bottom") +
+  coord_flip()
+saveplot("scatter2.pdf", height = 4, width = 6)
+```
+```{r}
+iris %>%
+  group_by(Species) %>%
+  ggplot(aes(y=Sepal.Width, x=Sepal.Length, color=Species, shape=Species)) +
+  geom_point(size = 3) +
+  ylim(0, NA) +
+  xlim(0, NA) +
+  labs(y="sepal width [cm]", x="sepal length [cm]") +
+  theme_half_open() +
+  background_grid(major = "xy") +
+  theme(legend.position = "bottom") +
+  coord_flip()
+saveplot("scatter3.pdf", height = 4, width = 6)
+```
