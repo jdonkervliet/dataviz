@@ -6,6 +6,7 @@ Data Visualization Examples
 -   [Plot Types](#plot-types)
     -   [Bar chart](#bar-chart)
     -   [Box plot](#box-plot)
+-   [Probability Distribution Plots](#probability-distribution-plots)
 
 If the repository does not contain the plot type you need, please
 consider submitting a pull request to add it.
@@ -145,3 +146,109 @@ the mean in a box plot. We find that a simple marker, distinctly
 different from the type of marker used for outliers, typically works
 well. In the example above we use a white dot with a black border to
 indicate the mean.
+
+# Probability Distribution Plots
+
+``` r
+iris %>%
+  ggplot(aes(x=Sepal.Length, fill="")) +
+  geom_histogram(binwidth = 0.1) +
+  labs(x= "sepal length [cm]", y="count") +
+  theme_half_open() +
+  xlim(0, NA) +
+  background_grid(major = "xy") +
+  theme(legend.position = "none")
+```
+
+    ## Warning: Removed 1 rows containing missing values (geom_bar).
+
+![](README_files/figure-gfm/unnamed-chunk-1-1.svg)<!-- -->
+
+``` r
+saveplot("histogram1.pdf", height = 2, width = 3)
+```
+
+    ## Warning: Removed 1 rows containing missing values (geom_bar).
+
+    ## [1] "histogram1.pdf"
+
+``` r
+iris %>%
+  ggplot(aes(x=Sepal.Length, fill="")) +
+  geom_density() +
+  labs(x= "sepal length [cm]", y="") +
+  theme_half_open() +
+  xlim(0, NA) +
+  background_grid(major = "xy") +
+  theme(legend.position = "none")
+```
+
+![](README_files/figure-gfm/unnamed-chunk-1-2.svg)<!-- -->
+
+``` r
+saveplot("pdf1.pdf", height = 2, width = 3)
+```
+
+    ## [1] "pdf1.pdf"
+
+``` r
+iris %>%
+  mutate(a = 1) %>%
+  ggplot(aes(x=Sepal.Length, fill=a)) +
+  stat_ecdf(geom = "step") +
+  labs(x= "length [cm]", y="fraction") +
+  theme_half_open() +
+  xlim(0, NA) +
+  background_grid(major = "xy") +
+  theme(legend.position = "none")
+```
+
+![](README_files/figure-gfm/unnamed-chunk-2-1.svg)<!-- -->
+
+``` r
+saveplot("cdf1.pdf", height = 2, width = 3)
+```
+
+    ## [1] "cdf1.pdf"
+
+``` r
+df <- data.frame(value = rnorm(10000, 6, 1))
+
+df %>%
+  ggplot(aes(x=value)) +
+  geom_histogram(binwidth = .2, color="black", fill = "white") +
+  theme_half_open() +
+  xlim(0, NA) +
+  background_grid(major = "y") +
+  theme(legend.position = "none")
+```
+
+    ## Warning: Removed 1 rows containing missing values (geom_bar).
+
+![](README_files/figure-gfm/unnamed-chunk-3-1.svg)<!-- -->
+
+``` r
+saveplot("pdf2.pdf", height = 2, width = 3)
+```
+
+    ## Warning: Removed 1 rows containing missing values (geom_bar).
+
+    ## [1] "pdf2.pdf"
+
+``` r
+df %>%
+  ggplot(aes(x=value)) +
+  stat_ecdf(geom = "step") +
+  theme_half_open() +
+  xlim(0, NA) +
+  background_grid(major = "xy", minor= "xy") +
+  theme(legend.position = "none")
+```
+
+![](README_files/figure-gfm/unnamed-chunk-3-2.svg)<!-- -->
+
+``` r
+saveplot("cdf2.pdf", height = 2, width = 3)
+```
+
+    ## [1] "cdf2.pdf"
