@@ -6,7 +6,7 @@ Data Visualization Examples
 -   [Plot Types](#plot-types)
     -   [Bar chart](#bar-chart)
     -   [Box plot](#box-plot)
--   [Line plot](#line-plot)
+    -   [Line chart](#line-chart)
 
 If the repository does not contain the plot type you need, please
 consider submitting a pull request to add it.
@@ -147,162 +147,165 @@ different from the type of marker used for outliers, typically works
 well. In the example above we use a white dot with a black border to
 indicate the mean.
 
-# Line plot
+## Line chart
+
+Line charts are useful for depicting events over time. The examples
+below show the number of COVID-19 cases reported over time in several
+places across the globe.
+
+### Simple line chart
 
 ``` r
 coronavirus %>%
+  # filter data
   filter(type == "confirmed") %>%
   filter(cases > 0) %>%
+  # create new column
   mutate(place = ifelse(country == "US", "US", "other")) %>%
+  # order items in legend: first "US", then "other"
+  mutate(place = factor(place, levels = c("US", "other"))) %>%
+  # group and sum cases in US and elsewhere
   group_by(date, place) %>%
-  summarise(cases = sum(cases)) %>%
+  summarise(cases = sum(cases), .groups='drop') %>%
   ggplot(aes(x=date, y=cases, color=place)) +
-  geom_line()+
+  geom_line() +
   theme_half_open() +
-  scale_y_continuous(labels = function(x) floor(x/100000)) +
-  ylab(bquote("\u00D7"*10^5~"number of cases")) +  background_grid(major = "y") +
+  scale_y_continuous(labels = function(x) floor(x/1000)) +
+  ylab(bquote("\u00D7"*10^3~"number of cases")) +  background_grid(major = "y") +
   theme(legend.position = "bottom")
 ```
 
-    ## `summarise()` has grouped output by 'date'. You can override using the
-    ## `.groups` argument.
+![](README_files/figure-gfm/line-chart-simple-1.svg)<!-- -->
 
-![](README_files/figure-gfm/unnamed-chunk-1-1.svg)<!-- -->
+A very simple line chart showing events over time.
 
-``` r
-saveplot("line1.pdf", height = 3, width = 4.5)
-```
-
-    ## [1] "line1.pdf"
+### Plotting cumulative values
 
 ``` r
 coronavirus %>%
   filter(type == "confirmed") %>%
   filter(cases > 0) %>%
   mutate(place = ifelse(country == "US", "US", "other")) %>%
+  # order items in legend: first "US", then "other"
+  mutate(place = factor(place, levels = c("US", "other"))) %>%
   group_by(date, place) %>%
-  summarise(cases = sum(cases)) %>%
+  summarise(cases = sum(cases), .groups='drop') %>%
   group_by(place) %>%
+  # create column with cumulative value
   mutate(ccases = cumsum(cases)) %>%
   ggplot(aes(x=date, y=ccases, color=place)) +
   geom_line()+
   theme_half_open() +
-  scale_y_continuous(labels = function(x) floor(x/10000000)) +
-  ylab(bquote("\u00D7"*10^7~"cumulative number of cases")) +  background_grid(major = "y") +
+  scale_y_continuous(labels = function(x) floor(x/1000000)) +
+  ylab(bquote("\u00D7"*10^6~"cumulative number of cases")) +  background_grid(major = "y") +
   theme(legend.position = "bottom")
 ```
 
-    ## `summarise()` has grouped output by 'date'. You can override using the
-    ## `.groups` argument.
+![](README_files/figure-gfm/line-chart-cumulative-1.svg)<!-- -->
 
-![](README_files/figure-gfm/unnamed-chunk-1-2.svg)<!-- -->
+A line chart can become difficult to read when the curves are highly
+jittery. In that case, it may help to plot cumulative values. However,
+this will make it more difficult to observe interesting events (e.g.,
+spikes) in the data.
 
-``` r
-saveplot("line1-cumulative.pdf", height = 4, width = 6)
-```
-
-    ## [1] "line1-cumulative.pdf"
+### Using a sliding window average
 
 ``` r
 coronavirus %>%
   filter(type == "confirmed") %>%
   filter(cases > 0) %>%
   mutate(place = ifelse(country == "US", "US", "other")) %>%
+  # order items in legend: first "US", then "other"
+  mutate(place = factor(place, levels = c("US", "other"))) %>%
   group_by(date, place) %>%
-  summarise(cases = sum(cases)) %>%
+  summarise(cases = sum(cases), .groups="drop") %>%
   group_by(place) %>%
+  # add column with sliding window average, window size = 7
   mutate(meancases = rollmean(cases, 7, fill=NA)) %>%
+  filter(!is.na(meancases)) %>%
   ggplot(aes(x=date, y=meancases, color=place)) +
   geom_line()+
   theme_half_open() +
-  scale_y_continuous(labels = function(x) floor(x/100000)) +
-  ylab(bquote("\u00D7"*10^5~"number of cases")) +
+  scale_y_continuous(labels = function(x) floor(x/1000)) +
+  ylab(bquote("\u00D7"*10^3~"number of cases")) +
   background_grid(major = "y") +
   theme(legend.position = "bottom")
 ```
 
-    ## `summarise()` has grouped output by 'date'. You can override using the
-    ## `.groups` argument.
+![](README_files/figure-gfm/line-chart-sliding-window-1.svg)<!-- -->
 
-    ## Warning: Removed 12 row(s) containing missing values (geom_path).
+Another way of dealing with jittery curves is to use a sliding window
+average. This smooths the curves, but partially hides spikes. For
+example, compare the spike just before (i.e., to the left of) 2021-01,
+and compare it with the spike [without using a sliding window
+average](#simple-line-chart).
 
-![](README_files/figure-gfm/unnamed-chunk-2-1.svg)<!-- -->
-
-``` r
-saveplot("line2.pdf", height = 3, width = 4.5)
-```
-
-    ## Warning: Removed 12 row(s) containing missing values (geom_path).
-
-    ## [1] "line2.pdf"
+### Highlighting values
 
 ``` r
+labels <- c("US", "India")
 coronavirus %>%
   filter(type == "confirmed") %>%
   filter(cases > 0) %>%
   group_by(country) %>%
+  # Add US and India to the start of country list, to get the correct legend colors
+  mutate(country = factor(country, levels = c(labels, sort(setdiff(country, labels))))) %>%
   mutate(meancases = rollmean(cases, 7, fill = NA)) %>%
   filter(!is.na(meancases)) %>%
   ggplot(aes(x=date, y=meancases, color=country)) +
   geom_line() +
-  gghighlight(max(meancases) > 50000, label_params = list(segment.color="black")) +
+  # highlight countries whose rolling average number of cases exceeds 200,000
+  # if necessary, connect label to curve with a black line segment
+  gghighlight(max(meancases) > 200000, label_key=country, label_params = list(segment.color="black")) +
   theme_half_open() +
-  scale_y_continuous(labels = function(x) floor(x/10000)) +
-  ylab(bquote("\u00D7"*10^4~"number of cases")) +
+  scale_y_continuous(labels = function(x) floor(x/1000)) +
+  ylab(bquote("\u00D7"*10^3~"number of cases")) +
   background_grid(major = "y")
 ```
 
-    ## label_key: country
+![](README_files/figure-gfm/line-chart-highlight-1.svg)<!-- -->
 
-    ## Warning: ggrepel: 4 unlabeled data points (too many overlaps). Consider
-    ## increasing max.overlaps
+If your line chart contains many curves, it can be useful to highlight
+the most important ones. This allows you to show all data without
+overloading the reader.
 
-![](README_files/figure-gfm/unnamed-chunk-3-1.svg)<!-- -->
-
-``` r
-saveplot("line3.pdf", height = 3, width = 4.5)
-```
-
-    ## Warning: ggrepel: 7 unlabeled data points (too many overlaps). Consider
-    ## increasing max.overlaps
-
-    ## [1] "line3.pdf"
+### Improving accessibility
 
 ``` r
-coronavirus %>%
+# create data for line chart
+d <- coronavirus %>%
   filter(type == "confirmed") %>%
   filter(cases > 0) %>%
   mutate(place = ifelse(country == "US", "US", "other")) %>%
+  # order items in legend: first "US", then "other"
+  mutate(place = factor(place, levels = c("US", "other"))) %>%
   group_by(date, place) %>%
-  summarise(cases = sum(cases)) %>%
+  summarise(cases = sum(cases), .groups = "drop") %>%
   group_by(place) %>%
   mutate(meancases = rollmean(cases, 7, fill=NA)) %>%
-  mutate(markers = ifelse(mday(date) == 1, meancases, NA)) %>%
-  filter(!is.na(meancases)) %>%
-  ggplot(aes(x=date, y=meancases, color=place)) +
-  geom_line()+
-  geom_point(aes(y=markers, shape=place), size=3) +
-  gghighlight(label_params = list(segment.color="black")) +
-  theme_half_open() +
-  scale_y_continuous(labels = function(x) floor(x/100000)) +
-  ylab(bquote("\u00D7"*10^5~"number of cases")) +
-  background_grid(major = "y")
+  filter(!is.na(meancases))
+
+# create data for markers
+dm <- d %>%
+  # select dates to place markers
+  mutate(markers = if_else(mday(date) == 1, meancases, NaN)) %>%
+  filter(!is.na(markers))
+
+# plot
+ggplot(data=d, aes(x=date, y=meancases, color=place)) +
+geom_line() +
+# plot markers on top of geom_line
+geom_point(data=dm, aes(y=markers, shape=place, color=place), size=3) +
+gghighlight(label_params = list(segment.color="black"), label_key = place) +
+theme_half_open() +
+scale_y_continuous(labels = function(x) floor(x/1000)) +
+ylab(bquote("\u00D7"*10^3~"number of cases")) +
+background_grid(major = "y") +
+theme(legend.position = "none")
 ```
 
-    ## `summarise()` has grouped output by 'date'. You can override using the
-    ## `.groups` argument.
-    ## label_key: place
+![](README_files/figure-gfm/line-chart-markers-1.svg)<!-- -->
 
-    ## Warning: Removed 1182 rows containing missing values (geom_point).
-    ## Removed 1182 rows containing missing values (geom_point).
-
-![](README_files/figure-gfm/unnamed-chunk-4-1.svg)<!-- -->
-
-``` r
-saveplot("line4.pdf", height = 3, width = 4.5)
-```
-
-    ## Warning: Removed 1182 rows containing missing values (geom_point).
-    ## Removed 1182 rows containing missing values (geom_point).
-
-    ## [1] "line4.pdf"
+Line charts can be tricky to read when printed in gray scale or when
+your reader has a color vision deficiency. A simple way to improve
+readability is to add markers to your chart.
